@@ -1,0 +1,84 @@
+import matplotlib.pyplot as plt
+import numpy as np
+
+m = 100 #mass kg
+g = 9.81 # gravity m/s^2 
+p = 1.225 # density kg/m^3
+A = 0.7 #area m^2 
+C = 0.15 #drag coeff
+f = 0.07 #friction coeff
+F= 315 #Thrust of car
+ti=0.00001 #Time increment
+
+t=0 #intial time in s
+a=0 #intial acceleration in m/s^2
+v=0 #intial velocity in m/s
+d=0 #intial displacement
+burnv=11.176 #loop limit
+coastv= 6.7056
+
+vlist=[]
+tlist=[]
+
+while v<burnv:
+    a=(F-C*A*(p*v**2)/2-m*g*f)/m #acceleration formula
+    t0=t #setting time orgin
+    t=t+ti #adding time increment
+    tlist.append(t)
+    v0=v #setting velocity orgin
+    v=v0+a*(t-t0) #calculating velocity
+    vlist.append(v)
+    d0=d #setting displacment orgin
+    d=d0+v*(t-t0) #calculating displacement
+    
+while v>coastv:
+    a=(-C*A*(p*v**2)/2-m*g*f)/m #acceleration formula
+    t0=t #setting time orgin
+    t=t+ti #adding time increment
+    tlist.append(t)
+    v0=v #setting velocity orgin
+    v=v0+a*(t-t0) #calculating velocity
+    vlist.append(v)
+    d0=d #setting displacment orgin
+    d=d0+v*(t-t0) #calculating displacement
+    
+while v<burnv:
+    a=(F-C*A*(p*v**2)/2-m*g*f)/m #acceleration formula
+    t0=t #setting time orgin
+    t=t+ti #adding time increment
+    tlist.append(t)
+    v0=v #setting velocity orgin
+    v=v0+a*(t-t0) #calculating velocity
+    vlist.append(v)
+    d0=d #setting displacment orgin
+    d=d0+v*(t-t0) #calculating displacement
+    
+while v>coastv:
+    a=(-C*A*(p*v**2)/2-m*g*f)/m #acceleration formula
+    t0=t #setting time orgin
+    t=t+ti #adding time increment
+    tlist.append(t)
+    v0=v #setting velocity orgin
+    v=v0+a*(t-t0) #calculating velocity
+    vlist.append(v)
+    d0=d #setting displacment orgin
+    d=d0+v*(t-t0) #calculating displacement
+    
+    
+    
+    
+print('acceleration=',a)
+print('velocity=',v)
+print('displacement=',d)
+print('time=',t)
+    
+slimit1=6.7056
+slimit2=11.176
+plt.axhline(y=slimit1, color='r', linestyle='-', label='Speed Limit')
+plt.axhline(y=slimit2, color='r', linestyle='-')
+plt.plot(tlist,vlist,label='Coast and Burn Speeds')
+plt.legend()
+plt.grid()
+plt.xlabel('Time(s)')
+plt.ylabel('Speed(m/s)')
+plt.title('Coast and Burn')
