@@ -1,0 +1,59 @@
+import time
+import board
+import analogio
+import busio
+import displayio
+import terminalio
+from adafruit_display_text import label
+import adafruit_displayio_ssd1306
+import math
+
+displayio.release_displays()
+
+# Use for I2C
+i2c = busio.I2C(board.GP1, board.GP0)
+display_bus = displayio.I2CDisplay(i2c, device_address=0x3D)
+
+WIDTH = 128
+HEIGHT = 64 # Change to 64 if needed
+BORDER = 5
+x=28
+y=HEIGHT
+
+display = adafruit_displayio_ssd1306.SSD1306(display_bus, width=WIDTH, height=HEIGHT)
+
+
+
+text = "0MPH"
+text_area = label.Label(
+    terminalio.FONT, text=text, color=0xFFFFFF, x=28, y=HEIGHT // 2 - 1
+)
+splash = displayio.Group()
+splash.append(text_area)
+display.show(splash)
+
+analog = analogio.AnalogIn(board.GP28)
+
+while True:
+    start = time.monotonic() #intial start time
+    if analog.value <= 1000: #Tells Hall Effect Sensor to start taking data
+        time.sleep(0.01) #Sleep to prevent Sensor from activating multiple times
+        while True:
+            while analog.value >= 1000: #Trigger Sensor
+                time.sleep(0)
+            stop = time.monotonic() #start time
+            cycle = (stop-start) #total cycle time
+            start = time.monotonic() #stop time
+            V=(1/(cycle))*2*math.pi*9.5*0.05681818181 #velocity calculation
+            if V <= 100: #Filter out Unrealistic Velocities
+                print('Velocity=',V)
+                print("time=",cycle)
+                text = "{}".format(V) #Display Velocity
+                text_area = label.Label(
+                    terminalio.FONT, text=text, color=0xFFFFFF, x=28, y=HEIGHT // 2 - 1
+                ) #Format Display
+                splash = displayio.Group() #Define Display Output
+                splash.append(text_area) #Reset Display Output
+                display.show(splash) #Show Display output
+            time.sleep(0.01)
+    time.sleep(0)
