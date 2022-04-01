@@ -7,6 +7,13 @@ import terminalio
 from adafruit_display_text import label
 import adafruit_displayio_ssd1306
 import math
+import digitalio
+
+led = digitalio.DigitalInOut(board.GP16) #define LED position
+led.direction = digitalio.Direction.OUTPUT #define output
+led.value = True #set intial condition 
+
+coast = False #Car needs to burn at the start
 
 displayio.release_displays()
 
@@ -15,7 +22,7 @@ i2c = busio.I2C(board.GP1, board.GP0)
 display_bus = displayio.I2CDisplay(i2c, device_address=0x3D)
 
 WIDTH = 128
-HEIGHT = 64 # Change to 64 if needed
+HEIGHT = 32 # Change to 64 if needed
 BORDER = 5
 x=28
 y=HEIGHT
@@ -37,15 +44,15 @@ analog = analogio.AnalogIn(board.GP28)
 while True:
     start = time.monotonic() #intial start time
     if analog.value <= 1000: #Tells Hall Effect Sensor to start taking data
-        time.sleep(0.01) #Sleep to prevent Sensor from activating multiple times
+        time.sleep(0) #Sleep to prevent Sensor from activating multiple times
         while True:
             while analog.value >= 1000: #Trigger Sensor
                 time.sleep(0)
             stop = time.monotonic() #start time
             cycle = (stop-start) #total cycle time
             start = time.monotonic() #stop time
-            V=(1/(cycle))*2*math.pi*9.5*0.05681818181 #velocity calculation
-            if V <= 100: #Filter out Unrealistic Velocities
+            V=(1/(cycle+0.000000000000000001))*2*math.pi*9.5*0.05681818181 #velocity calculation
+            if V <= 55: #Filter out Unrealistic Velocities
                 print('Velocity=',V)
                 print("time=",cycle)
                 text = "{}".format(V) #Display Velocity
@@ -55,5 +62,11 @@ while True:
                 splash = displayio.Group() #Define Display Output
                 splash.append(text_area) #Reset Display Output
                 display.show(splash) #Show Display output
-            time.sleep(0.01)
+                if V >= 25: #Turn off Gauge Burn at x speed
+                    coast = True #Car needs to coast
+                    led.value = False
+                if V <= 15 and coast == True: #Turn on Gauge when reaching x speed
+                    coast = False #Car needs to burn
+                    led.value = True
+            time.sleep(0)
     time.sleep(0)
