@@ -1,3 +1,4 @@
+#LIBRARIES
 import time
 import board
 import analogio
@@ -9,12 +10,19 @@ import adafruit_displayio_ssd1306
 import math
 import digitalio
 
+#VARIABLES 
+r=9.5 #radius of wheel
+cV=24.1 #coast speed in mph
+bV=5 #burn speed in mph
+
+#LED SETUP
 led = digitalio.DigitalInOut(board.GP16) #define LED position
 led.direction = digitalio.Direction.OUTPUT #define output
 led.value = True #set intial condition 
 
 coast = False #Car needs to burn at the start
 
+#SCREEN SETUP
 displayio.release_displays()
 
 # Use for I2C
@@ -39,8 +47,10 @@ splash = displayio.Group()
 splash.append(text_area)
 display.show(splash)
 
+#HALL EFFECT SET UP
 analog = analogio.AnalogIn(board.GP28)
 
+#COAST AND BURN LOOP
 while True:
     start = time.monotonic() #intial start time
     if analog.value <= 1000: #Tells Hall Effect Sensor to start taking data
@@ -51,7 +61,7 @@ while True:
             stop = time.monotonic() #start time
             cycle = (stop-start) #total cycle time
             start = time.monotonic() #stop time
-            V=(1/(cycle+0.000000000000000001))*2*math.pi*9.5*0.05681818181 #velocity calculation
+            V=(1/(cycle+0.000000000000000001))*2*math.pi*r*0.05681818181 #velocity calculation
             if V <= 55: #Filter out Unrealistic Velocities
                 print('Velocity=',V)
                 print("time=",cycle)
@@ -62,10 +72,10 @@ while True:
                 splash = displayio.Group() #Define Display Output
                 splash.append(text_area) #Reset Display Output
                 display.show(splash) #Show Display output
-                if V >= 25: #Turn off Gauge Burn at x speed
+                if V >= cV: #Turn off Gauge Burn at x speed
                     coast = True #Car needs to coast
                     led.value = False
-                if V <= 15 and coast == True: #Turn on Gauge when reaching x speed
+                if V <= bV and coast == True: #Turn on Gauge when reaching x speed
                     coast = False #Car needs to burn
                     led.value = True
             time.sleep(0)
